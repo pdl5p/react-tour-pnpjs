@@ -2,11 +2,9 @@ import * as React from 'react';
 import styles from './Tour.module.scss';
 import { ITourProps } from './ITourProps';
 import Tours from 'reactour';
-import { CompoundButton } from 'office-ui-fabric-react';
+import { CompoundButton, Icon } from 'office-ui-fabric-react';
 import { TourHelper } from './TourHelper';
 import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
-
-
 
 export interface ITourState {
   isTourOpen: boolean;
@@ -47,11 +45,12 @@ export default class Tour extends React.Component<ITourProps, ITourState> {
   public render(): React.ReactElement<ITourState> {
     return (
       <div className={styles.tour}>
+        
         <CompoundButton primary text={this.props.actionValue} secondaryText={this.props.description}
           disabled={this.state.tourDisabled} onClick={this._openTour} checked={this.state.isTourOpen}
           className={styles.tutorialButton}>
-
-      </CompoundButton>
+        </CompoundButton>
+        { !this.props.editMode && <Icon iconName="RemoveFilter" className={styles.closeButton} onClick={this.props.onClose} />}
         <Tours
           onRequestClose={this._closeTour}
           startAt={0}
@@ -59,7 +58,7 @@ export default class Tour extends React.Component<ITourProps, ITourState> {
           isOpen={this.state.isTourOpen}
           maskClassName="mask"
           className={styles.reactTourCustomCss}
-          accentColor={"#5cb7b7"}
+          accentColor={"#00A961"}
           rounded={5}
           onAfterOpen={this._disableBody}
           onBeforeClose={this._enableBody}

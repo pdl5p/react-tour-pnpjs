@@ -4,8 +4,6 @@ import {
 import { graph } from "@pnp/graph";
 
 
-
-
 export class TourHelper {
 
   public static getTourSteps(settings: any[]): any[] {
@@ -17,7 +15,8 @@ export class TourHelper {
         if (ele.Enabled) {
           result.push(
             {
-              selector: '[data-sp-feature-instance-id=\'' + ele.WebPart + '\']',
+              //selector: '[data-sp-feature-instance-id=\'' + ele.WebPart + '\']',
+              selector: ele.CssSelector,
               content: ele.StepDescription
             });
         }
