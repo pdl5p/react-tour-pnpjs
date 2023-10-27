@@ -12,7 +12,8 @@ import Tour from './components/Tour';
 import { ITourProps } from './components/ITourProps';
 import { PropertyFieldCollectionData, CustomCollectionFieldType } from '@pnp/spfx-property-controls/lib/PropertyFieldCollectionData';
 import { sp, ClientSidePage, ClientSideWebpart, IClientControlEmphasis } from '@pnp/sp';
-
+import { PartSelector, IPartSelectorProps } from './components/PartSelector';
+import { StepText, IStepTextProps } from './components/StepText';
 
 export interface ITourWebPartProps {
   actionValue: string;
@@ -25,9 +26,12 @@ export interface ITourWebPartProps {
 export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps> {
 
   private loadIndicator: boolean = false;
-  //private webpartList: any[] = new Array<any[]>();
+  private webpartList: any[] = new Array<any[]>();
+  private isFullWidthWebPart: boolean = false;
 
   public onInit(): Promise<void> {
+
+    this.isFullWidthWebPart = this.domElement.closest("CanvasControl--fullWidth") !== null;
 
     return super.onInit().then(_ => {
       sp.setup({
@@ -84,42 +88,45 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
   }
 
   public async GetAllWebpart(): Promise<any[]> {
+    console.log("GGG");
     // page file
-    // const file = sp.web.getFileByServerRelativePath(this.context.pageContext.site.serverRequestPath);
+    const file = sp.web.getFileByServerRelativePath(this.context.pageContext.site.serverRequestPath);
 
-    // const page = await ClientSidePage.fromFile(file);
+    const page = await ClientSidePage.fromFile(file);
 
     const wpData: any[] = [];
 
-    // page.sections.forEach(section => {
-    //   section.columns.forEach(column => {
-    //     column.controls.forEach(control => {
-    //       var wpName = {};
-    //       var wp = {};
-    //       if (control.data.webPartData != undefined) {
-    //         wpName = `sec[${section.order}] col[${column.order}] - ${control.data.webPartData.title}`;
-    //         wp = { text: wpName, key: control.data.webPartData.instanceId };
-    //         wpData.push(wp);
-    //       } else {
-    //         wpName = `sec[${section.order}] col[${column.order}] - "Webpart"`;
-    //         wp = { text: wpName, key: control.data.id };
-    //         wpData.push(wp);
-    //       }
-    //     });
+    page.sections.forEach(section => {
+      section.columns.forEach(column => {
+        column.controls.forEach(control => {
+          var wpName = {};
+          var wp = {};
+          if (control.data.webPartData != undefined) {
+            wpName = `sec[${section.order}] col[${column.order}] - ${control.data.webPartData.title}`;
+            wp = { text: wpName, key: `[data-sp-feature-instance-id="${control.data.webPartData.instanceId}"]` };
+            wpData.push(wp);
+          } else {
+            wpName = `sec[${section.order}] col[${column.order}] - "Webpart"`;
+            wp = { text: wpName, key: `[data-sp-feature-instance-id="${control.data.id}"]` };
+            wpData.push(wp);
+          }
+        });
+      });
+    });
 
-    //   });
-    // });
+    console.log("WPDATA", wpData);
+    wpData.push({ text: "Custom CSS Selector", key: "custom" });
+
     return wpData;
   }
 
   protected onPropertyPaneConfigurationStart(): void {
     var self = this;
-    // this.GetAllWebpart().then(res => {
-    //   //self.webpartList = res;
-    //   self.loadIndicator = false;
-    //   self.context.propertyPane.refresh();
-
-    // });
+    this.GetAllWebpart().then(res => {
+      self.webpartList = res;
+      self.loadIndicator = false;
+      self.context.propertyPane.refresh();
+    });
   }
 
 
@@ -143,52 +150,83 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
                 PropertyFieldCollectionData("collectionData", {
                   key: "collectionData",
                   label: "Tour steps",
-                  panelHeader: "Collection data panel header",
+                  panelHeader: "Tour steps configuration",
                   manageBtnLabel: "Configure tour steps",
                   value: this.properties.collectionData,
+                  enableSorting: true,
                   fields: [
+                    {
+                        id: "CssSelector",
+                        title: "WebPart or CSS Selector",
+                        type: CustomCollectionFieldType.custom,
+                        required: true,
+                        onCustomRender: (field, value, onUpdate, item, itemId, onError) => {
+                          const props: IPartSelectorProps = {
+                            options: this.webpartList,
+                            value,
+                            onUpdate,
+                            onError,
+                            field
+                          };
+                          return (
+                            React.createElement(PartSelector, props)
+                          );
+                        },
+                    },
                     // {
                     //   id: "WebPart",
                     //   title: "section[x] column[y] - WebPart Title",
                     //   type: CustomCollectionFieldType.dropdown,
                     //   options: this.webpartList,
                     //   required: true,
-
                     // },
-                    {
-                      id: "CssSelector",
-                      title: "CSS Selector",
-                      type: CustomCollectionFieldType.string,
-                      required: true,
-                    },
+                    // {
+                    //   id: "CssSelector",
+                    //   title: "CSS Selector",
+                    //   type: CustomCollectionFieldType.string,
+                    //   required: true,
+                    // },
                     {
                       id: "StepDescription",
                       title: "Step Description",
                       type: CustomCollectionFieldType.custom,
-                      onCustomRender: (field, value, onUpdate, item, itemId) => {
+                      required: true,
+                      onCustomRender: (field, value, onUpdate, item, itemId, onError) => {
+
+                        const props: IStepTextProps = {
+                          value,
+                          onUpdate,
+                          onError,
+                          field
+                        };
+
                         return (
-                          React.createElement("div", null,
-                            React.createElement("textarea",
-                              {
-                                style: { width: "400px", height: "100px" },
-                                placeholder: "Step description",
-                                key: itemId,
-                                value: value,
-                                onChange: (event: React.FormEvent<HTMLTextAreaElement>) => {
-                                  console.log(event);
-                                  onUpdate(field.id, event.currentTarget.value);
-                                }
-                              })
-                          )
+                          React.createElement(StepText, props)
                         );
+                        // return (
+                        //   React.createElement("div", null,
+                        //     React.createElement("textarea",
+                        //       {
+                        //         style: { width: "400px", height: "100px" },
+                        //         placeholder: "Step description",
+                        //         key: itemId,
+                        //         value: value,
+                        //         onChange: (event: React.FormEvent<HTMLTextAreaElement>) => {
+                        //           console.log(event);
+                        //           onUpdate(field.id, event.currentTarget.value);
+                        //         }
+                        //       })
+                        //   )
+                        // );
                       }
                     },
-                    {
-                      id: "Position",
-                      title: "Position",
-                      type: CustomCollectionFieldType.number,
-                      required: true
-                    },
+                    // {
+                    //   id: "Position",
+                    //   title: "Position",
+                    //   type: CustomCollectionFieldType.number,
+                    //   required: true,
+                      
+                    // },
                     {
                       id: "Enabled",
                       title: "Enabled",

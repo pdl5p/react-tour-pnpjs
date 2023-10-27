@@ -15,6 +15,11 @@
   'Droid Sans',
   'Helvetical Neue',
   sans-serif !important;
+
+  :global(.eTpeTG){
+    top: 10px;
+    right: 10px;
+  }
 }
 
 .tour {

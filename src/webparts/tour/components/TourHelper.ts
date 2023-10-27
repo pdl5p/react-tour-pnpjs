@@ -15,7 +15,6 @@ export class TourHelper {
         if (ele.Enabled) {
           result.push(
             {
-              //selector: '[data-sp-feature-instance-id=\'' + ele.WebPart + '\']',
               selector: ele.CssSelector,
               content: ele.StepDescription
             });
