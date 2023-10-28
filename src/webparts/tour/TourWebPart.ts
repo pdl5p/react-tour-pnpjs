@@ -16,6 +16,7 @@ import { PartSelector, IPartSelectorProps } from './components/PartSelector';
 import { StepText, IStepTextProps } from './components/StepText';
 
 export interface ITourWebPartProps {
+  icon: string;
   actionValue: string;
   description: string;
   collectionData: any[];
@@ -31,7 +32,7 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
 
   public onInit(): Promise<void> {
 
-    this.isFullWidthWebPart = this.domElement.closest("CanvasControl--fullWidth") !== null;
+    this.isFullWidthWebPart = this.domElement.closest(".CanvasZone--fullWidth") !== null;
 
     return super.onInit().then(_ => {
       sp.setup({
@@ -46,9 +47,12 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
     return key;
   }
 
-  private onClose(): void {
-    //alert("closing");
+  private isUserClosed(): boolean {
+    const key = this.getKey();
+    return window.localStorage.getItem(key) !== null;
+  }
 
+  private onClose(): void {
     const key = this.getKey();
     window.localStorage.setItem(key, "closed");
 
@@ -59,7 +63,7 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
 
     const editMode = this.displayMode === DisplayMode.Edit;
     const key = this.getKey();
-    if(window.localStorage.getItem(key) && !editMode){
+    if(this.isUserClosed() && !editMode){
       ReactDom.render(React.createElement("div", {}), this.domElement);
     }
     else
@@ -70,9 +74,11 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
         {
           actionValue: this.properties.actionValue,
           description: this.properties.description,
+          icon: this.properties.icon,
           collectionData: this.properties.collectionData,
           onClose: this.onClose.bind(this),
           editMode,
+          isFullWidth: this.isFullWidthWebPart,
         }
       );
       ReactDom.render(element, this.domElement);
@@ -87,8 +93,9 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
     return Version.parse('1.0');
   }
 
+
+
   public async GetAllWebpart(): Promise<any[]> {
-    console.log("GGG");
     // page file
     const file = sp.web.getFileByServerRelativePath(this.context.pageContext.site.serverRequestPath);
 
@@ -114,7 +121,6 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
       });
     });
 
-    console.log("WPDATA", wpData);
     wpData.push({ text: "Custom CSS Selector", key: "custom" });
 
     return wpData;
@@ -147,6 +153,9 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
                 }),
+                PropertyPaneTextField('icon', {
+                  label: strings.IconNameFieldLabel,
+                }),
                 PropertyFieldCollectionData("collectionData", {
                   key: "collectionData",
                   label: "Tour steps",
@@ -173,19 +182,6 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
                           );
                         },
                     },
-                    // {
-                    //   id: "WebPart",
-                    //   title: "section[x] column[y] - WebPart Title",
-                    //   type: CustomCollectionFieldType.dropdown,
-                    //   options: this.webpartList,
-                    //   required: true,
-                    // },
-                    // {
-                    //   id: "CssSelector",
-                    //   title: "CSS Selector",
-                    //   type: CustomCollectionFieldType.string,
-                    //   required: true,
-                    // },
                     {
                       id: "StepDescription",
                       title: "Step Description",
@@ -203,30 +199,8 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
                         return (
                           React.createElement(StepText, props)
                         );
-                        // return (
-                        //   React.createElement("div", null,
-                        //     React.createElement("textarea",
-                        //       {
-                        //         style: { width: "400px", height: "100px" },
-                        //         placeholder: "Step description",
-                        //         key: itemId,
-                        //         value: value,
-                        //         onChange: (event: React.FormEvent<HTMLTextAreaElement>) => {
-                        //           console.log(event);
-                        //           onUpdate(field.id, event.currentTarget.value);
-                        //         }
-                        //       })
-                        //   )
-                        // );
                       }
                     },
-                    // {
-                    //   id: "Position",
-                    //   title: "Position",
-                    //   type: CustomCollectionFieldType.number,
-                    //   required: true,
-                      
-                    // },
                     {
                       id: "Enabled",
                       title: "Enabled",

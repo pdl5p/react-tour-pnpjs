@@ -18,8 +18,6 @@ export const PartSelector = (props: IPartSelectorProps) => {
 
     const {options, onUpdate, value, field, onError } = props;
 
-    //console.log("OPT", options);
-
     const [dropdownValue, setDropdownValue] = useState("");
     const [textValue, setTextValue] = useState("");
 
@@ -38,55 +36,44 @@ export const PartSelector = (props: IPartSelectorProps) => {
             
         return () => {
             // cleanup
-        }
+        };
     }, []);
 
     const onDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) => {
         const key = option.key as string;
-        // if(key === 'custom') {
-        //     setIsCustom(true);
-        // }
-        // else{
-        //     setIsCustom(false);
-        // }
+        
         setDropdownValue(key);
  
-        if(onUpdate) {
-            if(key === 'custom') 
-            {
-                if(textValue){
-                    onUpdate(field.id, textValue);
-                    onError(field.id, "");
-                }
-                else{
-                    onUpdate(field.id, "");
-                    onError(field.id, "Please enter a valid CSS selector");
-                }
-            }else{
-                onUpdate(field.id, key);
+        if(key === 'custom') 
+        {
+            if(textValue){
+                onUpdate(field.id, textValue);
                 onError(field.id, "");
             }
+            else{
+                onUpdate(field.id, "");
+                onError(field.id, "Please enter a valid CSS selector");
+            }
+        }else{
+            onUpdate(field.id, key);
+            onError(field.id, "");
         }
-    }
+    };
 
     const onTextFieldChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
         setTextValue(newValue);
-        // if(onChange) {
-        //     onChange(newValue || "");
-        // }
-    }
+    };
 
     const onTextBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if(onUpdate) {
-            onUpdate(field.id, textValue);
-            if(!textValue) {
-                onError(field.id, "Please enter a valid CSS selector");
-            }
-            else{
-                onError(field.id, "");
-            }
+        
+        onUpdate(field.id, textValue);
+        if(!textValue) {
+            onError(field.id, "Please enter a valid CSS selector");
         }
-    }
+        else{
+            onError(field.id, "");
+        }
+    };
 
     const isCustom = dropdownValue === 'custom';
 
@@ -97,8 +84,5 @@ export const PartSelector = (props: IPartSelectorProps) => {
             onChange={onTextFieldChange} 
             onBlur={onTextBlur}
         />}
-        {/* <div>DD: {dropdownValue}</div>
-        <div>TF: {textValue}</div>
-        <div>V: {value}</div> */}
     </div>);
 };

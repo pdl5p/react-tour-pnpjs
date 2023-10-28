@@ -4,5 +4,6 @@ define([], function() {
     "BasicGroupName": "Group Name",
     "DescriptionFieldLabel": "Tour Description",
     "ActionValueFieldLabel":"Button Label",
+    "IconNameFieldLabel":"Icon Name",
   }
 });

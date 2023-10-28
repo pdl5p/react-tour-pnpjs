@@ -1,8 +1,3 @@
-import {
-  sp
-} from "@pnp/sp";
-import { graph } from "@pnp/graph";
-
 
 export class TourHelper {
 

@@ -13,6 +13,8 @@
   // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
   "requiresCustomScript": false,
   "supportedHosts": ["SharePointWebPart"],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
@@ -22,7 +24,9 @@
     "officeFabricIconFontName": "HintText",
     "properties": {
       "actionValue": "Start page tour",
-      "description": "Start page tutorial to discover all the features."
+      "description": "Start page tutorial to discover all the features.",
+      "icon": "GlobeFavorite",
+      "tourVersion": "v1"
     }
   }]
 }

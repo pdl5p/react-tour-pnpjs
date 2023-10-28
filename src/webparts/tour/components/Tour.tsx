@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './Tour.module.scss';
 import { ITourProps } from './ITourProps';
 import Tours from 'reactour';
-import { CompoundButton, Icon } from 'office-ui-fabric-react';
+import { CompoundButton, Icon, Link } from 'office-ui-fabric-react';
 import { TourHelper } from './TourHelper';
 import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 
@@ -41,30 +41,61 @@ export default class Tour extends React.Component<ITourProps, ITourState> {
     }
   }
 
-
   public render(): React.ReactElement<ITourState> {
-    return (
-      <div className={styles.tour}>
-        
-        <CompoundButton primary text={this.props.actionValue} secondaryText={this.props.description}
-          disabled={this.state.tourDisabled} onClick={this._openTour} checked={this.state.isTourOpen}
-          className={styles.tutorialButton}>
-        </CompoundButton>
-        { !this.props.editMode && <Icon iconName="RemoveFilter" className={styles.closeButton} onClick={this.props.onClose} />}
-        <Tours
-          onRequestClose={this._closeTour}
-          startAt={0}
-          steps={this.state.steps}
-          isOpen={this.state.isTourOpen}
-          maskClassName="mask"
-          className={styles.reactTourCustomCss}
-          accentColor={"#00A961"}
-          rounded={5}
-          onAfterOpen={this._disableBody}
-          onBeforeClose={this._enableBody}
-        />
-      </div>
-    );
+
+    const {
+      description,
+      actionValue,
+      icon,
+      editMode,
+      onClose,
+      isFullWidth
+     } = this.props;
+
+     const iconProps = icon ? { iconName: icon } : null;
+
+     const tour = <Tours
+     onRequestClose={this._closeTour}
+     startAt={0}
+     steps={this.state.steps}
+     isOpen={this.state.isTourOpen}
+     maskClassName="mask"
+     className={styles.reactTourCustomCss}
+     accentColor={"#00A961"}
+     rounded={5}
+     onAfterOpen={this._disableBody}
+     onBeforeClose={this._enableBody}
+   />;
+
+     if(isFullWidth){
+      return (<div className={styles.fullWidthTour}>
+          { !editMode && <Icon title="Close this webpart" iconName="RemoveFilter" 
+            className={styles.closeButton} onClick={onClose} />}
+          <div className={styles.tourLink}>
+            {iconProps && <Icon {...iconProps} className={styles.icon} /> }
+            { this.state.tourDisabled && <div className={styles.actionDisabled}>{ actionValue}</div> }
+            { !this.state.tourDisabled && <div onClick={this._openTour} className={styles.action}>{actionValue}</div> }
+            <div className={styles.description}>{description}</div>
+          </div>
+          {tour}
+        </div>
+      );
+     }
+     else
+     {
+      return (
+        <div className={styles.tour}>
+          <CompoundButton primary text={actionValue} secondaryText={description}
+            disabled={this.state.tourDisabled} onClick={this._openTour} checked={this.state.isTourOpen}
+            iconProps={iconProps}
+            className={styles.tutorialButton}>
+          </CompoundButton>
+          { !editMode && <Icon title="Close this webpart" iconName="RemoveFilter" 
+            className={styles.closeButton} onClick={onClose} />}
+          {tour}
+        </div>
+      );
+     }
   }
 
   private _disableBody = target => disableBodyScroll(target);
@@ -75,6 +106,8 @@ export default class Tour extends React.Component<ITourProps, ITourState> {
   }
 
   private _openTour = () => {
-    this.setState({ isTourOpen: true });
+    if(!this.state.tourDisabled){
+      this.setState({ isTourOpen: true });
+    }
   }
 }
