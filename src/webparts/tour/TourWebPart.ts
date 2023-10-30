@@ -1,19 +1,27 @@
-import * as React from 'react';
-import * as ReactDom from 'react-dom';
-import { Version, DisplayMode } from '@microsoft/sp-core-library';
+import * as React from "react";
+import * as ReactDom from "react-dom";
+import { Version, DisplayMode } from "@microsoft/sp-core-library";
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
-} from '@microsoft/sp-webpart-base';
+  PropertyPaneTextField,
+} from "@microsoft/sp-webpart-base";
 
-import * as strings from 'TourWebPartStrings';
-import Tour from './components/Tour';
-import { ITourProps } from './components/ITourProps';
-import { PropertyFieldCollectionData, CustomCollectionFieldType } from '@pnp/spfx-property-controls/lib/PropertyFieldCollectionData';
-import { sp, ClientSidePage, ClientSideWebpart, IClientControlEmphasis } from '@pnp/sp';
-import { PartSelector, IPartSelectorProps } from './components/PartSelector';
-import { StepText, IStepTextProps } from './components/StepText';
+import * as strings from "TourWebPartStrings";
+import Tour from "./components/Tour";
+import { ITourProps } from "./components/Tour";
+import {
+  PropertyFieldCollectionData,
+  CustomCollectionFieldType,
+} from "@pnp/spfx-property-controls/lib/PropertyFieldCollectionData";
+import {
+  sp,
+  ClientSidePage,
+  ClientSideWebpart,
+  IClientControlEmphasis,
+} from "@pnp/sp";
+import { PartSelector, IPartSelectorProps } from "./components/PartSelector";
+import { StepText, IStepTextProps } from "./components/StepText";
 
 export interface ITourWebPartProps {
   icon: string;
@@ -23,26 +31,25 @@ export interface ITourWebPartProps {
   tourVersion: string;
 }
 
-
 export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps> {
-
-  private loadIndicator: boolean = false;
+  //private loadingWebPartData: boolean = true;
+  private webPartDataReady: boolean = false;
   private webpartList: any[] = new Array<any[]>();
   private isFullWidthWebPart: boolean = false;
 
   public onInit(): Promise<void> {
+    this.isFullWidthWebPart =
+      this.domElement.closest(".CanvasZone--fullWidth") !== null;
 
-    this.isFullWidthWebPart = this.domElement.closest(".CanvasZone--fullWidth") !== null;
-
-    return super.onInit().then(_ => {
+    return super.onInit().then((_) => {
       sp.setup({
-        spfxContext: this.context
+        spfxContext: this.context,
       });
     });
   }
 
   private getKey(): string {
-    const key = `SiteTour_${this.properties.tourVersion}_${this.context.pageContext.site.serverRequestPath.toLowerCase()}`;
+    const key = `SiteTour_${this.context.pageContext.site.serverRequestPath.toLowerCase()}`;
     console.log("KEY", key);
     return key;
   }
@@ -60,15 +67,11 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
   }
 
   public render(): void {
-
     const editMode = this.displayMode === DisplayMode.Edit;
     const key = this.getKey();
-    if(this.isUserClosed() && !editMode){
+    if (this.isUserClosed() && !editMode) {
       ReactDom.render(React.createElement("div", {}), this.domElement);
-    }
-    else
-    {
-
+    } else {
       const element: React.ReactElement<ITourProps> = React.createElement(
         Tour,
         {
@@ -90,32 +93,32 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
   }
 
   protected get dataVersion(): Version {
-    return Version.parse('1.0');
+    return Version.parse("1.0");
   }
-
-
 
   public async GetAllWebpart(): Promise<any[]> {
     // page file
-    const file = sp.web.getFileByServerRelativePath(this.context.pageContext.site.serverRequestPath);
+    const file = sp.web.getFileByServerRelativePath(
+      this.context.pageContext.site.serverRequestPath
+    );
 
     const page = await ClientSidePage.fromFile(file);
 
     const wpData: any[] = [];
 
-    page.sections.forEach(section => {
-      section.columns.forEach(column => {
-        column.controls.forEach(control => {
-          var wpName = {};
-          var wp = {};
+    page.sections.forEach((section) => {
+      section.columns.forEach((column) => {
+        column.controls.forEach((control) => {
           if (control.data.webPartData != undefined) {
-            wpName = `sec[${section.order}] col[${column.order}] - ${control.data.webPartData.title}`;
-            wp = { text: wpName, key: `[data-sp-feature-instance-id="${control.data.webPartData.instanceId}"]` };
-            wpData.push(wp);
+            wpData.push({
+              text: `sec[${section.order}] col[${column.order}] - ${control.data.webPartData.title}`,
+              key: `${control.data.webPartData.instanceId}`,
+            });
           } else {
-            wpName = `sec[${section.order}] col[${column.order}] - "Webpart"`;
-            wp = { text: wpName, key: `[data-sp-feature-instance-id="${control.data.id}"]` };
-            wpData.push(wp);
+            wpData.push({
+              text: `sec[${section.order}] col[${column.order}] - "Webpart"`,
+              key: `${control.data.id}`,
+            });
           }
         });
       });
@@ -127,33 +130,37 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
   }
 
   protected onPropertyPaneConfigurationStart(): void {
+    console.log("onPropertyPaneConfigurationStart");
     var self = this;
-    this.GetAllWebpart().then(res => {
+    self.webPartDataReady = false;
+    this.GetAllWebpart().then((res) => {
       self.webpartList = res;
-      self.loadIndicator = false;
-      self.context.propertyPane.refresh();
+      self.webPartDataReady = true;
+      setTimeout(() => {
+        self.context.propertyPane.refresh();
+      }, 10);
     });
   }
 
-
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    console.log("getPropertyPaneConfiguration");
     return {
       pages: [
         {
           header: {
-            description: strings.PropertyPaneDescription
+            description: strings.PropertyPaneDescription,
           },
           groups: [
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('actionValue', {
-                  label: strings.ActionValueFieldLabel
+                PropertyPaneTextField("actionValue", {
+                  label: strings.ActionValueFieldLabel,
                 }),
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneTextField("description", {
+                  label: strings.DescriptionFieldLabel,
                 }),
-                PropertyPaneTextField('icon', {
+                PropertyPaneTextField("icon", {
                   label: strings.IconNameFieldLabel,
                 }),
                 PropertyFieldCollectionData("collectionData", {
@@ -162,66 +169,76 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
                   panelHeader: "Tour steps configuration",
                   manageBtnLabel: "Configure tour steps",
                   value: this.properties.collectionData,
+                  //manageBtnEnabled: !this.loadIndicator,
                   enableSorting: true,
                   fields: [
                     {
-                        id: "CssSelector",
-                        title: "WebPart or CSS Selector",
-                        type: CustomCollectionFieldType.custom,
-                        required: true,
-                        onCustomRender: (field, value, onUpdate, item, itemId, onError) => {
-                          const props: IPartSelectorProps = {
-                            options: this.webpartList,
-                            value,
-                            onUpdate,
-                            onError,
-                            field
-                          };
-                          return (
-                            React.createElement(PartSelector, props)
-                          );
-                        },
+                      id: "CssSelector",
+                      title: "WebPart or CSS Selector",
+                      type: CustomCollectionFieldType.custom,
+                      required: true,
+                      onCustomRender: (
+                        field,
+                        value,
+                        onUpdate,
+                        item,
+                        itemId,
+                        onError
+                      ) => {
+                        const props: IPartSelectorProps = {
+                          options: this.webpartList,
+                          value,
+                          onUpdate,
+                          onError,
+                          field,
+                        };
+                        return React.createElement(PartSelector, props);
+                      },
                     },
                     {
                       id: "StepDescription",
                       title: "Step Description",
                       type: CustomCollectionFieldType.custom,
                       required: true,
-                      onCustomRender: (field, value, onUpdate, item, itemId, onError) => {
-
+                      onCustomRender: (
+                        field,
+                        value,
+                        onUpdate,
+                        item,
+                        itemId,
+                        onError
+                      ) => {
                         const props: IStepTextProps = {
                           value,
                           onUpdate,
                           onError,
-                          field
+                          field,
                         };
-
-                        return (
-                          React.createElement(StepText, props)
-                        );
-                      }
+                        return React.createElement(StepText, props);
+                      },
                     },
                     {
                       id: "Enabled",
                       title: "Enabled",
                       type: CustomCollectionFieldType.boolean,
-                      defaultValue: true
-                    }
+                      defaultValue: true,
+                    },
                   ],
-                  disabled: false
+                  disabled: !this.webPartDataReady,
                 }),
-                PropertyPaneTextField('tourVersion', {
+                PropertyPaneTextField("tourVersion", {
                   label: "Tour version",
-                  description: "Update this to reset the tour for users who have closed the web part",
+                  description:
+                    "Update this to reset the tour for users who have closed the web part",
                   value: "v1",
-                })
-              ]
-            }
-          ]
-        }
+                }),
+              ],
+            },
+          ],
+        },
       ],
       loadingIndicatorDelayTime: 5,
-      showLoadingIndicator: this.loadIndicator
+      showLoadingIndicator: this.webPartDataReady ? false : true,
     };
   }
 }

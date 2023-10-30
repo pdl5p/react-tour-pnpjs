@@ -16,17 +16,21 @@
   "supportsThemeVariants": true,
   "supportsFullBleed": true,
 
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
-    "title": { "default": "Tour - Tutorial WebPart" },
-    "description": { "default": "Start page tutorial to discover all the features" },
-    "officeFabricIconFontName": "HintText",
-    "properties": {
-      "actionValue": "Start page tour",
-      "description": "Start page tutorial to discover all the features.",
-      "icon": "GlobeFavorite",
-      "tourVersion": "v1"
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": { "default": "Other" },
+      "title": { "default": "Tour - Tutorial WebPart" },
+      "description": {
+        "default": "Start page tutorial to discover all the features"
+      },
+      "officeFabricIconFontName": "HintText",
+      "properties": {
+        "actionValue": "Start page tour",
+        "description": "Start page tutorial to discover all the features.",
+        "icon": "Running",
+        "tourVersion": "v1"
+      }
     }
-  }]
+  ]
 }
