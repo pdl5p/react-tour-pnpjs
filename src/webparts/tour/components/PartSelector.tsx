@@ -95,7 +95,7 @@ export const PartSelector = (props: IPartSelectorProps) => {
           onBlur={onTextBlur}
         />
       )}
-      <div>VALUE: {value}</div>
+      {/* <div>VALUE: {value}</div> */}
     </div>
   );
 };

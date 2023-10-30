@@ -50,18 +50,34 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
 
   private getKey(): string {
     const key = `SiteTour_${this.context.pageContext.site.serverRequestPath.toLowerCase()}`;
-    console.log("KEY", key);
+    //console.log("KEY", key);
     return key;
+  }
+
+  private getCheckValue(): string {
+    return `${this.context.instanceId}_${this.properties.tourVersion};`;
   }
 
   private isUserClosed(): boolean {
     const key = this.getKey();
-    return window.localStorage.getItem(key) !== null;
+    const checkValue = this.getCheckValue();
+
+    const item = window.localStorage.getItem(key);
+    if(item && item.indexOf(checkValue) !== -1) {
+      return true;
+    }
+    return false;
   }
 
   private onClose(): void {
     const key = this.getKey();
-    window.localStorage.setItem(key, "closed");
+    let checkValue = this.getCheckValue();
+
+    const item = window.localStorage.getItem(key);
+    if(item) {
+      checkValue = item + checkValue;
+    }
+    window.localStorage.setItem(key, checkValue);
 
     this.render();
   }
@@ -237,8 +253,8 @@ export default class TourWebPart extends BaseClientSideWebPart<ITourWebPartProps
           ],
         },
       ],
-      loadingIndicatorDelayTime: 5,
-      showLoadingIndicator: this.webPartDataReady ? false : true,
+      //loadingIndicatorDelayTime: 5,
+      //showLoadingIndicator: this.webPartDataReady ? false : true,
     };
   }
 }

@@ -141,11 +141,11 @@ export default class Tour extends React.Component<ITourProps, ITourState> {
 
   private _closeTour = () => {
     this.setState({ isTourOpen: false });
-  };
+  }
 
   private _openTour = () => {
     if (!this.state.tourDisabled) {
       this.setState({ isTourOpen: true });
     }
-  };
+  }
 }
